@@ -1,0 +1,399 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ------------------------------------------------------------------ */
+/*  THEME MAP — Midnight Enterprise (DESIGN.md)                         */
+/* ------------------------------------------------------------------ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-selected: var(--surface-selected);
+  --color-accent-muted: var(--accent-muted);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  /* sidebar */
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+
+  /* charts */
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+
+  /* core */
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* semantic message colors */
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-surface: var(--info-surface);
+  --color-info-border: var(--info-border);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-surface: var(--success-surface);
+  --color-success-border: var(--success-border);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-surface: var(--warning-surface);
+  --color-warning-border: var(--warning-border);
+
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+  --color-error-surface: var(--error-surface);
+  --color-error-border: var(--error-border);
+
+  /* data table */
+  --color-table-toolbar: var(--table-toolbar);
+  --color-table-toolbar-foreground: var(--table-toolbar-foreground);
+  --color-table-toolbar-border: var(--table-toolbar-border);
+  --color-table-header: var(--table-header);
+  --color-table-header-foreground: var(--table-header-foreground);
+  --color-table-header-border: var(--table-header-border);
+  --color-table-row: var(--table-row);
+  --color-table-row-alt: var(--table-row-alt);
+  --color-table-row-hover: var(--table-row-hover);
+  --color-table-cell-foreground: var(--table-cell-foreground);
+  --color-table-border: var(--table-border);
+  --color-table-surface: var(--table-surface);
+
+  /* radius: 8px base (buttons/inputs); cards ≈12px via xl */
+  --radius-sm: calc(var(--radius) * 0.75);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.5);
+  --radius-xl: calc(var(--radius) * 2);
+  --radius-2xl: calc(var(--radius) * 2.5);
+  --radius-3xl: calc(var(--radius) * 3);
+  --radius-4xl: calc(var(--radius) * 3.5);
+}
+
+/* ================================================================== */
+/*  Midnight Enterprise — dark graphite (DESIGN.md §3–4)               */
+/*  Applied as default :root and .dark so dark: utilities work.        */
+/* ================================================================== */
+:root,
+.dark {
+  /* Design tokens */
+  --surface-1: #111820;
+  --surface-2: #16202a;
+  --surface-3: #1b2733;
+  --surface-selected: #1d2e3d;
+  --border-subtle: #263442;
+  --border-strong: #344556;
+  --text-primary: #edf2f7;
+  --text-secondary: #a7b2be;
+  --text-muted: #778594;
+  --brand-accent: #5a9fd4;
+  --brand-accent-hover: #72afe0;
+  --accent-muted: #1c3a50;
+  --focus-ring: #6bade0;
+
+  /* shadcn bridge */
+  --background: #0b0f14;
+  --foreground: #edf2f7;
+  --card: #16202a;
+  --card-foreground: #edf2f7;
+  --popover: #1b2733;
+  --popover-foreground: #edf2f7;
+
+  --primary: #5a9fd4;
+  --primary-foreground: #0b0f14;
+
+  --secondary: #1b2733;
+  --secondary-foreground: #edf2f7;
+
+  --muted: #1b2733;
+  --muted-foreground: #778594;
+
+  /* Hover / selected wash (not the blue brand — that is --primary) */
+  --accent: #1c3a50;
+  --accent-foreground: #edf2f7;
+
+  --destructive: #e47777;
+  --destructive-foreground: #0b0f14;
+
+  --border: #263442;
+  --input: #263442;
+  --ring: #6bade0;
+
+  /* Semantic — soft surfaces for badges; FG for text/icons */
+  --info: #78b4df;
+  --info-foreground: #78b4df;
+  --info-surface: #183247;
+  --info-border: #263442;
+
+  --success: #71c99a;
+  --success-foreground: #71c99a;
+  --success-surface: #153428;
+  --success-border: #263442;
+
+  --warning: #e5b85c;
+  --warning-foreground: #e5b85c;
+  --warning-surface: #3a2e16;
+  --warning-border: #263442;
+
+  --error: #e47777;
+  --error-foreground: #e47777;
+  --error-surface: #3a1e22;
+  --error-border: #263442;
+
+  --chart-1: #5a9fd4;
+  --chart-2: #78b4df;
+  --chart-3: #71c99a;
+  --chart-4: #a7b2be;
+  --chart-5: #e5b85c;
+
+  --radius: 0.5rem;
+
+  --sidebar: #111820;
+  --sidebar-foreground: #edf2f7;
+  --sidebar-primary: #5a9fd4;
+  --sidebar-primary-foreground: #0b0f14;
+  --sidebar-accent: #1c3a50;
+  --sidebar-accent-foreground: #edf2f7;
+  --sidebar-border: #263442;
+  --sidebar-ring: #6bade0;
+
+  --table-toolbar: #16202a;
+  --table-toolbar-foreground: #edf2f7;
+  --table-toolbar-border: #263442;
+  --table-header: #1b2733;
+  --table-header-foreground: #a7b2be;
+  --table-header-border: #263442;
+  --table-row: #16202a;
+  --table-row-alt: #16202a;
+  --table-row-hover: #1b2733;
+  --table-cell-foreground: #edf2f7;
+  --table-border: #263442;
+  --table-surface: #16202a;
+
+  --elevation-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    min-height: 100vh;
+    font-feature-settings: "tnum" 1;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  html {
+    @apply font-sans;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Modal enter/exit — calm ease, no elastic overshoot (DESIGN §21)    */
+/* ------------------------------------------------------------------ */
+@keyframes modal-spring-in {
+  from {
+    opacity: 0;
+    scale: 0.98;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes modal-spring-out {
+  from {
+    opacity: 1;
+    scale: 1;
+  }
+
+  to {
+    opacity: 0;
+    scale: 0.98;
+  }
+}
+
+@layer components {
+  .modal-content-spring {
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    max-height: min(90dvh, calc(100dvh - 2rem));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    box-shadow: var(--elevation-shadow);
+    border-radius: 1rem;
+    animation: modal-spring-in 200ms ease-out both !important;
+  }
+
+  .modal-content-spring::-webkit-scrollbar,
+  .modal-content-spring *::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  .modal-content-spring,
+  .modal-content-spring * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .modal-content-spring[data-state="closed"] {
+    animation: modal-spring-out 160ms ease-in both !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .modal-content-spring,
+    .modal-content-spring[data-state="closed"] {
+      animation: none !important;
+    }
+  }
+
+  /* Flat surface helpers (no gradients) */
+  .surface-app {
+    background-color: var(--background);
+  }
+
+  .surface-panel {
+    background-color: var(--surface-1);
+  }
+
+  .surface-header {
+    background-color: var(--surface-1);
+  }
+
+  .surface-card {
+    background-color: var(--surface-2);
+  }
+
+  /* ---- data table surfaces ---- */
+  .table-shell {
+    @apply flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden;
+    color: var(--table-cell-foreground);
+  }
+
+  .table-toolbar {
+    @apply sticky top-0 z-20 flex shrink-0 flex-row flex-wrap items-center gap-2 border-b px-4 py-3;
+    background-color: var(--table-toolbar);
+    color: var(--table-toolbar-foreground);
+    border-color: var(--table-toolbar-border);
+  }
+
+  .table-toolbar-search {
+    @apply flex flex-wrap items-center gap-2 rounded-md border px-3 py-2 pl-8;
+    background-color: var(--surface-1);
+    border-color: var(--table-border);
+    min-height: 2.5rem;
+  }
+
+  /* Body region fills space; the table surface is the scrollport */
+  .table-body-region {
+    @apply flex min-h-0 flex-1 flex-col overflow-hidden p-4;
+  }
+
+  .table-footer-region {
+    @apply mt-auto shrink-0 border-t px-4 py-3;
+    border-color: var(--table-toolbar-border);
+    background-color: var(--table-toolbar);
+    color: var(--table-toolbar-foreground);
+  }
+
+  .table-surface {
+    @apply min-h-0 w-full flex-1 overflow-auto rounded-xl border;
+    background-color: var(--table-surface);
+    border-color: var(--table-border);
+  }
+
+  .table-head-row {
+    background-color: var(--table-header);
+    border-color: var(--table-header-border);
+  }
+
+  .table-head-cell {
+    @apply sticky top-0 z-20 h-11 px-3 text-left text-xs font-semibold tracking-wide uppercase;
+    color: var(--table-header-foreground);
+    border-color: var(--table-header-border);
+    background-color: var(--table-header);
+    /* Keep header opaque while body scrolls underneath */
+    box-shadow: 0 1px 0 0 var(--table-header-border);
+  }
+
+  .table-body-row {
+    background-color: var(--table-row);
+    border-color: var(--table-border);
+    color: var(--table-cell-foreground);
+    min-height: 3.25rem;
+  }
+
+  .table-body-row:hover {
+    background-color: var(--table-row-hover);
+  }
+
+  .table-body-row[data-selected="true"],
+  .table-body-row[aria-selected="true"] {
+    background-color: var(--surface-selected);
+    box-shadow: inset 3px 0 0 0 var(--brand-accent);
+  }
+
+  .table-body-cell {
+    @apply px-3 align-middle text-sm;
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+    color: var(--table-cell-foreground);
+    border-color: var(--table-border);
+  }
+
+  .table-footer-bar {
+    @apply flex min-h-10 items-center justify-between gap-3 text-sm;
+    color: var(--muted-foreground);
+  }
+}

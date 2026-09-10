@@ -1,0 +1,71 @@
+---
+description: Conventions for the stack-based modal system (useModal, confirm, notify, form dirty guard)
+globs: src/components/shared/modals/**/*
+alwaysApply: false
+---
+
+# Universal Modals
+
+Use the shared stack-based modal system via `useModal()`. Do not build one-off Dialog/AlertDialog wiring for confirms, blocking notifications, or form dialogs when this fits.
+
+## Layout
+
+| Concern | Path |
+|---------|------|
+| Types | `src/components/shared/modals/types.ts` |
+| Provider / reducer | `src/components/shared/modals/modal-context.tsx` |
+| Public hook | `src/components/shared/modals/use-modal.ts` |
+| Renderers + dirty guard | `src/components/shared/modals/modal-root.tsx` |
+| App mount | `ModalProvider` + `ModalRoot` in `src/components/shared/layout/app-providers.tsx` |
+
+## Choosing an API
+
+| Need | Use |
+|------|-----|
+| Must-decide yes/no | `confirm({ title, message, variant? })` → `Promise<boolean>` |
+| Blocking acknowledge | `notify({ variant, title, message })` |
+| Form in a dialog | `openModal({ type: "form", component, title?, size? })` |
+| Transient feedback | Toast — not this system |
+| Auth / permission from `useError().run()` | Already routed to `notify` — do not duplicate |
+
+## Form modal pattern
+
+Capture the id returned by `openModal` (sync) so content can report dirty and close on submit:
+
+```tsx
+// ✅ form modal + dirty bridge
+let formId = ""
+formId = openModal({
+  type: "form",
+  title: "New User",
+  size: "lg",
+  component: (
+    <UserForm
+      onDirtyChange={(isDirty) => setDirty(formId, isDirty)}
+      onSubmit={async (values) => {
+        await save(values)
+        closeModal(formId)
+      }}
+    />
+  ),
+})
+```
+
+- Callers never invent `id` or pass `isDirty` in the config.
+- Dirty close is handled by the modal system (discard confirm stacks on top).
+- Successful submit closes via `closeModal(formId)` — no discard prompt.
+
+## List-page CRUD
+
+Wire Create/Edit/Delete on list pages via `DynamicTable` `toolbarActions` / `rowActions` + this modal API. Submit with `useError().run()` + `applyServerErrors`; success → toast + `closeModal` + reload. Delete → `confirm({ variant: "destructive" })`. Gate write UI with `can(me.role, Actions.<feature>.write)` from `@/features/auth/permissions`. See `.docs/components/list-pages.md` and `.cursor/rules/list-page-crud.mdc`.
+
+## Constraints
+
+- Named exports only; no `any`.
+- Modal package must **not** import `DynamicForm`, `FieldDef`, or feature forms — `component` is opaque `ReactNode`.
+- Compose modals + forms only at the call site (use form `onDirtyChange`).
+- No auto-dismiss / timeouts (toasts own that).
+- Prefer `useModal` over `useModalContext` in feature/app code.
+- Use shadcn Dialog / AlertDialog as-is; do not reimplement portal/overlay/focus-trap.
+
+See `.docs/components/modals.md` for the full human guide.

@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  firstName    String
+  lastName     String
+  pictureUrl   String?
+  fullName     String
+  password     String
+  role         Role           @default(USER)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  deletedAt    DateTime?
+  isActive     Boolean        @default(true)
+  isVerified   Boolean        @default(false)
+  verifiedAt   DateTime?
+  verifiedBy   String?
+  activities   UserActivity[]
+  department   Department?    @relation("UserDepartment", fields: [departmentId], references: [id])
+  departmentId String?
+  location     Location?      @relation("UserLocation", fields: [locationId], references: [id])
+  locationId   String?
+  managedLocations Location[] @relation("LocationManager")
+  shiftTemplates  ShiftTemplate[]  @relation("ShiftTemplateAssignee")
+  shiftInstances  ShiftInstance[]  @relation("ShiftInstanceAssignee")
+  attendances     ShiftAttendance[]
+  timeOffRequests         TimeOffRequest[] @relation("TimeOffRequester")
+  reviewedTimeOffRequests TimeOffRequest[] @relation("TimeOffReviewer")
+}
+
+model UserActivity {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  timestamp    DateTime @default(now())
+  activity     Activity
+  activityData Json?
+
+  @@index([userId])
+  @@index([timestamp])
+}
+
+model Department {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  isActive    Boolean   @default(true)
+  users       User[]    @relation("UserDepartment")
+}
+
+model Location {
+  id            String    @id @default(uuid())
+  name          String
+  description   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+  isActive      Boolean   @default(true)
+  minimumStaff  Int       @default(0)
+  manager       User?     @relation("LocationManager", fields: [managerId], references: [id])
+  managerId     String?
+  users         User[]    @relation("UserLocation")
+  shiftTemplates ShiftTemplate[]
+  shiftInstances ShiftInstance[]
+  attendances    ShiftAttendance[]
+}
+
+enum ShiftType {
+  MORNING
+  AFTERNOON
+  NIGHT
+  FULL_DAY
+}
+
+enum ShiftStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model ShiftTemplate {
+  id         String          @id @default(uuid())
+  locationId String
+  location   Location        @relation(fields: [locationId], references: [id])
+  userId     String
+  user       User            @relation("ShiftTemplateAssignee", fields: [userId], references: [id])
+  type       ShiftType
+  startTime  String
+  endTime    String
+  weekdays   Int[]
+  notes      String?
+  isActive   Boolean         @default(true)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  deletedAt  DateTime?
+  instances  ShiftInstance[]
+
+  @@index([locationId])
+  @@index([userId])
+}
+
+model ShiftInstance {
+  id         String         @id @default(uuid())
+  templateId String?
+  template   ShiftTemplate? @relation(fields: [templateId], references: [id])
+  locationId String
+  location   Location       @relation(fields: [locationId], references: [id])
+  userId     String
+  user       User           @relation("ShiftInstanceAssignee", fields: [userId], references: [id])
+  date       DateTime
+  type       ShiftType
+  startTime  String
+  endTime    String
+  status     ShiftStatus    @default(SCHEDULED)
+  notes      String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  deletedAt  DateTime?
+  attendances ShiftAttendance[]
+
+  @@index([locationId, date])
+  @@index([userId, date])
+  @@index([templateId])
+}
+
+model ShiftAttendance {
+  id              String         @id @default(uuid())
+  userId          String
+  user            User           @relation(fields: [userId], references: [id])
+  shiftInstanceId String?
+  shiftInstance   ShiftInstance? @relation(fields: [shiftInstanceId], references: [id])
+  locationId      String?
+  location        Location?      @relation(fields: [locationId], references: [id])
+  checkInAt       DateTime
+  checkOutAt      DateTime?
+  /** Minutes on the clock; set when checking out. */
+  durationMinutes Int?
+  checkInActivityId  String?
+  checkOutActivityId String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([userId, checkInAt])
+  @@index([locationId, checkInAt])
+  @@index([shiftInstanceId])
+}
+
+enum TimeOffType {
+  TIME_OFF
+  SICK
+}
+
+enum TimeOffStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model TimeOffRequest {
+  id           String        @id @default(uuid())
+  userId       String
+  user         User          @relation("TimeOffRequester", fields: [userId], references: [id])
+  type         TimeOffType
+  status       TimeOffStatus @default(PENDING)
+  startDate    DateTime
+  endDate      DateTime
+  note         String?
+  reviewedById String?
+  reviewedBy   User?         @relation("TimeOffReviewer", fields: [reviewedById], references: [id])
+  reviewedAt   DateTime?
+  reviewNote   String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+
+  @@index([userId, status])
+  @@index([status, startDate])
+}
+
+enum Activity {
+  LOGIN
+  LOGOUT
+  REGISTER
+  VERIFY
+  UNVERIFY
+  SHIFT_TEMPLATE_CREATE
+  SHIFT_TEMPLATE_UPDATE
+  SHIFT_TEMPLATE_DELETE
+  SHIFT_TEMPLATE_GENERATE
+  SHIFT_INSTANCE_CREATE
+  SHIFT_INSTANCE_UPDATE
+  SHIFT_INSTANCE_DELETE
+  SHIFT_CHECK_IN
+  SHIFT_CHECK_OUT
+  PROFILE_UPDATE
+  TIME_OFF_REQUEST
+  TIME_OFF_APPROVE
+  TIME_OFF_REJECT
+  TIME_OFF_CANCEL
+}

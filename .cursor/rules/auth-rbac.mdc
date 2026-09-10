@@ -1,0 +1,81 @@
+---
+description: Auth session, middleware gate, and RBAC Actions/authorize/can conventions
+globs: src/features/auth/**/*,src/middleware.ts,src/app/(auth)/**/*,src/components/shared/layout/app-providers.tsx,src/features/**/actions/**
+alwaysApply: false
+---
+
+# Auth & RBAC
+
+Use jose cookie sessions + the permission-matrix action catalog. Do not invent NextAuth, parallel permission systems, or raw `"users:write"` strings at call sites.
+
+## Layout
+
+| Concern | Path |
+|---------|------|
+| Cookie JWT | `src/features/auth/utils.ts` |
+| Matrix + `Actions` + `can` | `src/features/auth/permissions.ts` (isomorphic — safe on client) |
+| Server gates | `src/features/auth/session.ts` (`requireSession`, `authorize`) |
+| Client session | `useAuth()` → `src/features/auth/hooks/` |
+| Middleware | `src/middleware.ts` |
+| Providers | `src/components/shared/layout/app-providers.tsx` |
+| Login | `src/app/(auth)/login/` |
+
+## Middleware
+
+- Unauthenticated non-public routes → redirect `/login?next=…`
+- Public: `/login`, `/clock`
+- Authenticated `/login` → `/`
+- With session → refresh cookie via `updateSession`
+
+## Auth surface
+
+Server actions only: `loginAction` / `logoutAction` / `getMeAction` via `useAuth`. Do not invent REST `/api/auth/*` or axios session clients.
+
+## Provider order
+
+`ModalProvider` → `AuthProvider` → `ErrorProvider` → `{children}` + `ModalRoot` + `Toaster`.
+
+`ErrorProvider` must wrap `ModalRoot` so form modals can call `useError().run()`.
+
+## RBAC
+
+**Source of truth:** `ROLE_PERMISSIONS` in `permissions.ts`.
+
+```ts
+// ✅ server — inside withErrorBoundary
+await authorize(Actions.users.write)
+
+// ✅ client UI gate
+can(me.role, Actions.users.write)
+```
+
+### Extending for a new vertical
+
+1. Add `Permission` union members (`foo:read`, `foo:write`)
+2. Grant them on roles in `ROLE_PERMISSIONS`
+3. Add `Actions.foo.read` / `Actions.foo.write`
+4. `await authorize(Actions.foo.*)` in server actions; `can(me.role, Actions.foo.write)` in list UI
+
+## Import hygiene
+
+| Code | Import from |
+|------|-------------|
+| Client / list pages | `@/features/auth/permissions` (`Actions`, `can`), `useAuth` |
+| Server actions | `@/features/auth/permissions` + `@/features/auth/session` (`authorize`) |
+
+- **Never** import `@/features/auth/session` from client components (pulls server `AppError`).
+- Prefer `authorize(Actions.*)` over deprecated `requirePermission("…")`.
+- Do not hardcode `role === "ADMIN"` for feature gates — use `can` / `authorize`.
+
+## Errors
+
+`authorize` / `requireSession` throw `AppError` with stable kinds/codes:
+
+| Failure | Kind | Code |
+|---------|------|------|
+| No session | `auth` | `SESSION_EXPIRED` |
+| Missing permission | `permission` | `FORBIDDEN` |
+
+Client channel table routes these via `useError().run()` — do not invent parallel handling.
+
+See `.docs/components/auth.md` for the full human guide.

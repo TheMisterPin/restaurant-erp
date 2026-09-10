@@ -1,0 +1,64 @@
+---
+description: Conventions for schema-driven DynamicForm (FieldDef, layouts, validation)
+globs: src/components/shared/forms/**/*,src/features/**/forms/**/*,src/features/**/actions/**/*
+alwaysApply: false
+---
+
+# Dynamic Forms
+
+Use the shared schema-driven form system. Do not build one-off RHF forms when `DynamicForm` fits.
+
+## Layout
+
+| Concern | Path |
+|---------|------|
+| Types | `src/components/shared/forms/types` |
+| Field inputs | `src/components/shared/forms/inputs` |
+| Registry / validation | `src/components/shared/forms/lib` |
+| `DynamicForm` | `src/components/shared/forms/templates` |
+| Feature forms | `src/features/<feature>/components/forms` |
+| Feature model types | `src/features/<feature>/types` |
+
+## Adding a feature form
+
+1. Define the model type under `features/<feature>/types`.
+2. Put shared zod in `src/lib/schemas/<model>.ts`; reuse in FieldDefs and server actions.
+3. Export a `FieldDef<T>[]` schema under `components/forms/*-form-fields.ts`.
+4. Wrap `DynamicForm` in a thin named `*Form` client component.
+5. Pass `isEdit`, `initialValues`, `onSubmit`, `layout`, `submitLabel` from the wrapper.
+6. Wire submit with `useError().run(action, { form })` — see `.docs/components/error-handling.md`.
+
+```tsx
+// ✅ feature wrapper
+<DynamicForm<User>
+  fields={userFormFields}
+  layout={{ mode: LayoutMode.Single, columns: 2 }}
+  isEdit={isEdit}
+  initialValues={initialValues}
+  onSubmit={onSubmit} // (values, form) => …
+/>
+```
+
+```tsx
+// ✅ submit via error pipeline
+const data = await run(updateUser(values), { form })
+if (data) toast.success("Saved")
+```
+
+## FieldDef rules
+
+- Every field needs `name`, `type`, `label`, and `validation` (zod).
+- `select` / `multiselect` / `radio` require static `options` arrays on the FieldDef. Load dynamic options in the `*Form` wrapper via `run(listX())`, then pass them into `build*FormFields({ …options })`. Do not fetch inside FieldDef definitions or field inputs.
+- `visibleWhen` / `requiredWhen` receive full form values; hidden fields are dropped from validation.
+- `hide: true` — never render (e.g. timestamps). `canEdit: false` — disabled only when `isEdit`.
+- Prefer `type` from the registry; use `render` only as an escape hatch.
+- New input type = one file in `inputs/` + one line in `fieldRegistry`. Nothing else.
+
+## Constraints
+
+- Named exports only; no `any`.
+- Use shadcn `Form*` primitives inside field inputs.
+- Do not add form libraries beyond RHF + zod.
+- Layout modes: `LayoutMode.Single` | `MultiStep` | `Tabs` (match `section` keys to step/tab keys).
+
+See `.docs/components/forms.md` for the full human guide.

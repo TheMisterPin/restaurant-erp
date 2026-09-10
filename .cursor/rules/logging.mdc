@@ -1,0 +1,55 @@
+---
+description: Audit trail via logActivity + ADMIN activity list; never raw userActivity.create
+globs: src/features/logging/**/*,src/features/auth/actions/**/*,src/features/users/actions/**/*
+alwaysApply: false
+---
+
+# Logging / audit trail
+
+Use the shared `logActivity` helper on Prisma `UserActivity`. Do not invent parallel audit tables or raw `prisma.userActivity.create` call sites.
+
+## Layout
+
+| Concern | Path |
+|---------|------|
+| Write helper (server-only) | `src/features/logging/server.ts` |
+| Types / client barrel | `src/features/logging/types`, `index.ts` |
+| List action | `src/features/logging/actions/activity-actions.ts` |
+| List UI | `hooks/use-activity-list-page` + `components/pages/activity-list-page` |
+| Demo route | `/team/activity` |
+
+## Writing
+
+```ts
+import { logActivity } from "@/features/logging/server"
+
+await logActivity({
+  userId,
+  activity: "LOGIN", // Activity enum
+  activityData: { /* optional JSON */ },
+})
+```
+
+- Call from server actions / route handlers only.
+- No `authorize` inside `logActivity` — callers already enforce RBAC/auth.
+- Existing events: LOGIN / LOGOUT (auth), REGISTER (`createUser`).
+- New event types → extend Prisma `enum Activity` + migrate + generate, then pass the new value.
+
+## Reading
+
+```ts
+await authorize(Actions.logging.read) // ADMIN only
+can(me.role, Actions.logging.read)    // client gate
+```
+
+Read-only list: `DynamicTable` + `toActivityTableRow`, no forms/modals/row actions.
+
+## Import hygiene
+
+| Code | From |
+|------|------|
+| Server writes | `@/features/logging/server` |
+| Client types | `@/features/logging` |
+| Never | `server.ts` from client |
+
+See `.docs/components/logging.md` for the full human guide.
