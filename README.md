@@ -43,6 +43,8 @@ pnpm docker:reset   # docker compose down -v — deletes all packaged DB data
 
 After `docker:reset`, the next Start re-runs migrations and seed.
 
+**Existing databases:** If you already seeded before the restaurant rebrand, org/location names may still show the old office demo data (Engineering, Headquarters, etc.). Seed upserts by name and does not rename existing rows — reset the database to apply the new seed (`pnpm docker:reset` for Docker, or drop/recreate and run `pnpm db:migrate` + `pnpm db:seed` locally).
+
 ### Option B — local development
 
 ```bash

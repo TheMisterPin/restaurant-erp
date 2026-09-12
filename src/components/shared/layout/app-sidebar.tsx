@@ -38,16 +38,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 size="lg"
                 asChild
                 className="data-[slot=sidebar-menu-button]:p-2"
-                tooltip="Components Playground"
+                tooltip="Restaurant ERP"
               >
                 <Link href="/">
                   <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-accent-muted text-primary">
                     <Hexagon className="size-4" />
                   </div>
                   <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">Playground</span>
+                    <span className="truncate font-semibold">Restaurant ERP</span>
                     <span className="truncate text-xs text-muted-foreground">
-                      ERP UI
+                      Staff & scheduling
                     </span>
                   </div>
                 </Link>
