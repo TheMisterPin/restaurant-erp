@@ -1,6 +1,6 @@
-# Components Playground
+# Restaurant ERP
 
-Next.js (App Router) ERP boilerplate / component playground. Shared UI systems live under `src/components/shared`; feature verticals under `src/features`. Auth uses jose cookie sessions + Prisma; middleware requires login for all app routes.
+Next.js (App Router) restaurant staff and scheduling ERP — also a component playground for shared UI systems. Shared UI lives under `src/components/shared`; feature verticals under `src/features`. Auth uses jose cookie sessions + Prisma; middleware requires login for all app routes.
 
 ## Stack
 

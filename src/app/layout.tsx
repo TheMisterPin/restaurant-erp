@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Components Playground",
-  description: "ERP UI boilerplate",
+  title: "Restaurant ERP",
+  description: "Restaurant staff and scheduling ERP",
 }
 
 export default function RootLayout({
