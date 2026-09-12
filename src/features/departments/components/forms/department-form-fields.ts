@@ -11,7 +11,7 @@ export const departmentFormFields: FieldDef<DepartmentFormValues>[] = [
     name: "name",
     type: "text",
     label: "Name",
-    placeholder: "Engineering",
+    placeholder: "Kitchen",
     validation: departmentNameSchema,
   },
   {

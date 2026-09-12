@@ -91,8 +91,8 @@ export const userFormFields: FieldDef<User>[] = [
     label: "Department",
     validation: z.string().optional(),
     options: [
-      { label: "Engineering", value: "engineering" },
-      { label: "Design", value: "design" },
+      { label: "Kitchen", value: "kitchen" },
+      { label: "Front of House", value: "front-of-house" },
     ],
     visibleWhen: (values) => values.role === "ADMIN",
   },

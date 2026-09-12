@@ -20,7 +20,7 @@ export function buildLocationFormFields(
       name: "name",
       type: "text",
       label: "Name",
-      placeholder: "Headquarters",
+      placeholder: "Inside",
       validation: locationNameSchema,
     },
     {
