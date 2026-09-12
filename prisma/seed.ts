@@ -19,6 +19,41 @@ const prisma = new PrismaClient({
 
 const DEFAULT_PASSWORD = "password123"
 
+/** Restaurant-flavored org data — rooms of one site, not multiple restaurants. */
+const SEED_CATALOG = {
+  departments: [
+    {
+      name: "Kitchen",
+      description: "Back-of-house prep and line",
+    },
+    {
+      name: "Front of House",
+      description: "Service floor and hosts",
+    },
+    {
+      name: "Management",
+      description: "Scheduling and ops",
+    },
+  ],
+  locations: [
+    {
+      name: "Inside",
+      description: "Main indoor dining room",
+      minimumStaff: 3,
+    },
+    {
+      name: "Outdoor",
+      description: "Patio / terrace seating",
+      minimumStaff: 2,
+    },
+    {
+      name: "Event",
+      description: "Private dining / events",
+      minimumStaff: 1,
+    },
+  ],
+} as const
+
 type ShiftPreset = {
   type: "MORNING" | "AFTERNOON" | "NIGHT" | "FULL_DAY"
   startTime: string
@@ -708,53 +743,41 @@ async function seedActivityLog() {
 }
 
 async function main() {
-  const engineering = await ensureDepartment({
-    name: "Engineering",
-    description: "Product engineering and platform",
-  })
-  const operations = await ensureDepartment({
-    name: "Operations",
-    description: "Business operations and support",
-  })
-  const people = await ensureDepartment({
-    name: "People",
-    description: "HR and workplace experience",
-  })
+  const departments = []
+  for (const dept of SEED_CATALOG.departments) {
+    departments.push(await ensureDepartment(dept))
+  }
 
-  // Bootstrap locations (managers assigned after users exist)
-  const hq = await ensureLocation({
-    name: "Headquarters",
-    description: "Main office",
-    minimumStaff: 3,
-  })
-  const warehouse = await ensureLocation({
-    name: "Warehouse",
-    description: "Fulfillment and inventory",
-    minimumStaff: 2,
-  })
-  const remote = await ensureLocation({
-    name: "Remote",
-    description: "Distributed / remote workforce",
-    minimumStaff: 1,
-  })
+  const locations = []
+  for (const loc of SEED_CATALOG.locations) {
+    locations.push(
+      await ensureLocation({
+        name: loc.name,
+        description: loc.description,
+        minimumStaff: loc.minimumStaff,
+      }),
+    )
+  }
+
+  const [inside, outdoor] = locations
 
   const users = await seedUsers({
-    departmentIds: [engineering.id, operations.id, people.id],
-    locationIds: [hq.id, warehouse.id, remote.id],
+    departmentIds: departments.map((d) => d.id),
+    locationIds: locations.map((l) => l.id),
   })
 
   const admin = users.find((user) => user.email === "admin@example.com")
   const manager = users.find((user) => user.email === "manager@example.com")
 
   await prisma.location.update({
-    where: { id: hq.id },
+    where: { id: inside.id },
     data: { managerId: admin?.id ?? null },
   })
   await prisma.location.update({
-    where: { id: warehouse.id },
+    where: { id: outdoor.id },
     data: { managerId: manager?.id ?? null },
   })
-  // Leave Remote without a manager for the "without manager" demo tab
+  // Leave Event without a manager for the "without manager" demo tab
 
   const shifts = await seedShiftsFromLocations()
   const attendance = await seedAttendanceLog()
