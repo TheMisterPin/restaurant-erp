@@ -53,6 +53,9 @@ export function getPageTitle(pathname: string): string {
 
   if (pathname === "/") return "Home"
   if (pathname === "/profile") return "Profile"
+  if (pathname === "/floor") return "Floor"
+  if (pathname === "/kitchen") return "Kitchen"
+  if (pathname === "/bar") return "Bar"
 
   const segment = pathname.split("/").filter(Boolean).pop()
   if (!segment) return "Home"

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ROLE_LABELS } from "@/features/auth/permissions"
 import { ProfileForm } from "@/features/profile/components/forms/profile-form"
 import type {
   Profile,
@@ -119,7 +120,7 @@ function ProfilePanel({
 
   const details = [
     ["Email", profile.email],
-    ["Role", profile.role === "ADMIN" ? "Admin" : "User"],
+    ["Role", ROLE_LABELS[profile.role] ?? profile.role],
     ["Department", profile.departmentName ?? "Not assigned"],
     ["Location", profile.locationName ?? "Not assigned"],
   ]

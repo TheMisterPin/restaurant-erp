@@ -3,7 +3,8 @@ import { faker } from "@faker-js/faker"
 import { PrismaPg } from "@prisma/adapter-pg"
 import bcrypt from "bcryptjs"
 
-import { Prisma, PrismaClient } from "../src/generated/prisma/client"
+import { Prisma, PrismaClient, type Role } from "../src/generated/prisma/client"
+import { seedServiceDemo } from "./seed-service"
 
 /** Stable seed so re-runs keep the same fake names/emails. */
 faker.seed(42)
@@ -123,7 +124,7 @@ async function upsertUser(input: {
   email: string
   firstName: string
   lastName: string
-  role: "ADMIN" | "USER"
+  role: Role
   password: string
   departmentId?: string | null
   locationId?: string | null
@@ -218,7 +219,7 @@ async function ensureLocation(input: {
 
 type SeedUserSpec = {
   email: string
-  role: "ADMIN" | "USER"
+  role: Role
   /** When set, use fixed names (demo logins). Otherwise Faker. */
   firstName?: string
   lastName?: string
@@ -237,6 +238,24 @@ function buildUserSpecs(): SeedUserSpec[] {
     },
     { email: "user@example.com", role: "USER" },
     { email: "manager@example.com", role: "USER" },
+    {
+      email: "foh@example.com",
+      role: "FOH",
+      firstName: "Giulia",
+      lastName: "Rossi",
+    },
+    {
+      email: "kitchen@example.com",
+      role: "KITCHEN",
+      firstName: "Marco",
+      lastName: "Bianchi",
+    },
+    {
+      email: "bar@example.com",
+      role: "BAR",
+      firstName: "Luca",
+      lastName: "Conti",
+    },
   ]
 
   const generated: SeedUserSpec[] = Array.from({ length: 7 }, () => {
@@ -768,6 +787,31 @@ async function main() {
 
   const admin = users.find((user) => user.email === "admin@example.com")
   const manager = users.find((user) => user.email === "manager@example.com")
+  const foh = users.find((user) => user.email === "foh@example.com")
+  const kitchenUser = users.find((user) => user.email === "kitchen@example.com")
+  const barUser = users.find((user) => user.email === "bar@example.com")
+
+  const kitchenDept = departments.find((dept) => dept.name === "Kitchen")
+  const fohDept = departments.find((dept) => dept.name === "Front of House")
+
+  if (foh && fohDept) {
+    await prisma.user.update({
+      where: { id: foh.id },
+      data: { departmentId: fohDept.id, locationId: inside.id },
+    })
+  }
+  if (kitchenUser && kitchenDept) {
+    await prisma.user.update({
+      where: { id: kitchenUser.id },
+      data: { departmentId: kitchenDept.id, locationId: inside.id },
+    })
+  }
+  if (barUser && fohDept) {
+    await prisma.user.update({
+      where: { id: barUser.id },
+      data: { departmentId: fohDept.id, locationId: inside.id },
+    })
+  }
 
   await prisma.location.update({
     where: { id: inside.id },
@@ -783,12 +827,22 @@ async function main() {
   const attendance = await seedAttendanceLog()
   const activities = await seedActivityLog()
 
+  const service = await seedServiceDemo(prisma, {
+    insideLocationId: inside.id,
+    actorUserId: foh?.id ?? admin?.id ?? users[0]!.id,
+  })
+
   console.log("Seed complete")
   console.log(`  users: ${users.length} (password: ${DEFAULT_PASSWORD})`)
   console.log(
-    `  demo logins: admin@example.com, user@example.com, manager@example.com`,
+    `  demo logins: admin@example.com, user@example.com, manager@example.com, foh@example.com, kitchen@example.com, bar@example.com`,
   )
-  console.log(`  shifts: +${shifts.templates} templates, +${shifts.instances} instances`)
+  console.log(
+    `  shifts: +${shifts.templates} templates, +${shifts.instances} instances`,
+  )
+  console.log(
+    `  service: ${service.tables} tables, ${service.catalog} catalog items`,
+  )
   console.log(
     `  attendance: +${attendance.created} records (${attendance.skipped} skipped of ${attendance.considered} past shifts)`,
   )

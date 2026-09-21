@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { decrypt, SESSION_COOKIE, updateSession } from "./features/auth/utils"
+import { postLoginPath } from "./features/auth/permissions"
 
 const PUBLIC_PATHS = new Set(["/login", "/clock"])
 
@@ -20,7 +21,9 @@ export async function middleware(request: NextRequest) {
   }
 
   if (session && pathname === "/login") {
-    return NextResponse.redirect(new URL("/", request.url))
+    return NextResponse.redirect(
+      new URL(postLoginPath(session.role), request.url),
+    )
   }
 
   if (session) {

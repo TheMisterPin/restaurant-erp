@@ -10,6 +10,9 @@ datasource db {
 enum Role {
   ADMIN
   USER
+  FOH
+  KITCHEN
+  BAR
 }
 
 model User {
@@ -39,6 +42,7 @@ model User {
   attendances     ShiftAttendance[]
   timeOffRequests         TimeOffRequest[] @relation("TimeOffRequester")
   reviewedTimeOffRequests TimeOffRequest[] @relation("TimeOffReviewer")
+  serviceEvents           ServiceEvent[]
 }
 
 model UserActivity {
@@ -79,6 +83,7 @@ model Location {
   shiftTemplates ShiftTemplate[]
   shiftInstances ShiftInstance[]
   attendances    ShiftAttendance[]
+  diningTables   DiningTable[]
 }
 
 enum ShiftType {
@@ -214,4 +219,167 @@ enum Activity {
   TIME_OFF_APPROVE
   TIME_OFF_REJECT
   TIME_OFF_CANCEL
+  SERVICE_ITEMS_ADDED
+  SERVICE_COURSE_FIRED
+  SERVICE_COURSE_PICKED_UP
+  SERVICE_DRINKS_PICKED_UP
+  SERVICE_COURSE_DELIVERED
+  SERVICE_BILL_REQUESTED
+  SERVICE_PAYMENT_COMPLETED
+  SERVICE_TABLE_CLEARED
+}
+
+enum CatalogItemKind {
+  FOOD
+  DRINK
+}
+
+enum CatalogCategory {
+  STARTER
+  MAIN
+  DESSERT
+  DRINK
+}
+
+enum ProductionStation {
+  GRILL
+  HOT_KITCHEN
+  COLD_KITCHEN
+  BAR
+}
+
+enum ItemProductionStatus {
+  HELD
+  QUEUED
+  PREPARING
+  READY
+  PICKED_UP
+  DELIVERED
+}
+
+enum ServiceEventType {
+  TABLE_SEATED
+  ORDER_SUBMITTED
+  COURSE_FIRED
+  ITEM_RELEASED
+  ITEM_PREPARING
+  ITEM_READY
+  ITEM_UNDO_READY
+  COURSE_PICKED_UP
+  DRINKS_PICKED_UP
+  COURSE_DELIVERED
+  ITEM_ADDED
+  BILL_REQUESTED
+  PAYMENT_COMPLETED
+  TABLE_CLEARED
+}
+
+model CatalogItem {
+  id        String           @id @default(uuid())
+  name      String
+  kind      CatalogItemKind
+  category  CatalogCategory
+  station   ProductionStation
+  isActive  Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  deletedAt DateTime?
+  orderItems OrderItem[]
+
+  @@unique([name])
+  @@index([kind, category])
+}
+
+model DiningTable {
+  id         String    @id @default(uuid())
+  locationId String
+  location   Location  @relation(fields: [locationId], references: [id])
+  number     Int
+  seatCount  Int
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+  orders     Order[]
+
+  @@unique([locationId, number])
+  @@index([locationId])
+}
+
+model Order {
+  id               String         @id @default(uuid())
+  tableId          String
+  table            DiningTable    @relation(fields: [tableId], references: [id])
+  covers           Int
+  submittedAt      DateTime?
+  billRequestedAt  DateTime?
+  paidAt           DateTime?
+  closedAt         DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  courses          Course[]
+  items            OrderItem[]
+  events           ServiceEvent[]
+
+  @@index([tableId, closedAt])
+}
+
+model Course {
+  id          String      @id @default(uuid())
+  orderId     String
+  order       Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  name        String
+  sequence    Int
+  firedAt     DateTime?
+  pickedUpAt  DateTime?
+  deliveredAt DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  items       OrderItem[]
+
+  @@index([orderId, sequence])
+}
+
+model OrderItem {
+  id                String                @id @default(uuid())
+  orderId           String
+  order             Order                 @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  courseId          String?
+  course            Course?               @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  catalogItemId     String
+  catalogItem       CatalogItem           @relation(fields: [catalogItemId], references: [id])
+  name              String
+  kind              CatalogItemKind
+  station           ProductionStation
+  quantity          Int                   @default(1)
+  productionStatus  ItemProductionStatus
+  orderedAt         DateTime
+  releasedAt        DateTime?
+  preparingAt       DateTime?
+  readyAt           DateTime?
+  pickedUpAt        DateTime?
+  deliveredAt       DateTime?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  @@index([orderId, productionStatus])
+  @@index([courseId])
+  @@index([station, productionStatus])
+}
+
+model ServiceEvent {
+  id          String            @id @default(uuid())
+  type        ServiceEventType
+  orderId     String
+  order       Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  tableId     String
+  courseId    String?
+  itemId      String?
+  actorUserId String
+  actor       User              @relation(fields: [actorUserId], references: [id])
+  payload     Json?
+  createdAt   DateTime          @default(now())
+
+  @@index([orderId, createdAt])
+  @@index([tableId, createdAt])
 }

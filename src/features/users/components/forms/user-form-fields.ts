@@ -58,6 +58,9 @@ function buildBaseFields(
       options: [
         { label: "Admin", value: "ADMIN" },
         { label: "User", value: "USER" },
+        { label: "Front of House", value: "FOH" },
+        { label: "Kitchen", value: "KITCHEN" },
+        { label: "Bar", value: "BAR" },
       ],
     },
     {

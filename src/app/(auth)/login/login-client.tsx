@@ -8,13 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useError } from "@/features/errors"
+import { postLoginPath } from "@/features/auth/permissions"
 import { loginAction } from "@/features/auth/actions/auth-actions"
 import { useAuth } from "@/features/auth/hooks/use-auth"
-
-function safeNextPath(raw: string | null): string {
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/"
-  return raw
-}
 
 export default function LoginPage() {
   const router = useRouter()
@@ -40,7 +36,7 @@ export default function LoginPage() {
           if (me) {
             await refreshMe()
             toast.success(`Welcome, ${me.fullName}`)
-            router.push(safeNextPath(searchParams.get("next")))
+            router.push(postLoginPath(me.role, searchParams.get("next")))
             router.refresh()
           }
         }}

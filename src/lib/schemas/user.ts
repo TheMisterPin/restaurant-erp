@@ -11,9 +11,12 @@ export const userFirstNameSchema = z.string().min(1, "Required")
 
 export const userLastNameSchema = z.string().min(1, "Required")
 
-export const userRoleSchema = z.enum(["ADMIN", "USER"], {
-  required_error: "Required",
-})
+export const userRoleSchema = z.enum(
+  ["ADMIN", "USER", "FOH", "KITCHEN", "BAR"],
+  {
+    required_error: "Required",
+  },
+)
 
 export const userPasswordSchema = z
   .string()
